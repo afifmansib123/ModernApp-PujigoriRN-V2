@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "PujiGori",
+    "slug": "pujigori-mobile",
+    "version": "1.0.0",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTabletMode": true,
+      "bundleIdentifier": "com.pujigori.mobile"
+    },
+    "android": {
+      "package": "com.pujigori.mobile"
+    },
+    "plugins": [
+      "expo-router",
+      ["expo-secure-store", {
+        "faceIDPermission": "Allow $(PRODUCT_NAME) to access your Face ID"
+      }]
+    ],
+    "scheme": "pujigori"
+  }
+}

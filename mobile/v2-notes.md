@@ -21,6 +21,8 @@ All three collapse into one file.
 
 ## Commit - TanStack React Query - Axios
 
+src/lib/axios.ts
+
 install : npx expo install axios
 
 | `fetchBaseQuery` in RTK — token injected in `prepareHeaders` | Axios interceptor — auto-attaches token to every request |
@@ -48,3 +50,34 @@ amazon-cognito-js    →       stays (no replacement needed)
 expo-secure-store    →       stays, wrapped in storage.ts
 
 The reason we split it: Redux was doing two jobs at once — managing local app state AND fetching server data. Now each tool does one job only. Cleaner, easier to debug.
+
+## Commit : add tanstack query + axios + zustand foundation ##
+
+src/queries/auth.queries.ts
+
+npx expo install @tanstack/react-query
+
+| `getAuthUser` as RTK `build.query` inside `api.ts` | `useGetAuthUser()` — standalone hook, same result |
+| Token injected manually inside `queryFn` | Axios interceptor handles it — `queryFn` just calls `api.get()` |
+| `invalidatesTags: ['User']` | `queryClient.invalidateQueries({ queryKey: authKeys.user })` |
+| No logout query — manual dispatch | `useLogout()` mutation — clears Zustand + SecureStore + all query cache |
+
+---
+
+Key concept — `enabled: !!token`:**
+
+token = null  →  query does NOT run  (user not logged in)
+token = "xyz" →  query runs          (fetch profile from backend)
+
+## app/_layout.tsx - QueryClientProvider (TanStack provider) ##
+
+| `<ReduxProvider>` | `<QueryClientProvider client={queryClient}>` |
+| `useGetAuthUserQuery()` from RTK | `useGetAuthUser()` from our queries file |
+| No hydration — token read inside RTK's `prepareHeaders` | `hydrate()` runs once on boot, puts token in Zustand |
+| `isAuthenticated = user && !error` | `isAuthenticated = !!token && !!user` — explicit check |
+
+App boots
+→ isHydrating = true   (reading SecureStore)
+→ isHydrating = false  (token found or not)
+→ if token exists: isFetchingUser = true  (calling /auth/profile)
+→ isFetchingUser = false → show tabs or auth screens

@@ -18,3 +18,33 @@ src/state/index.ts (Redux store)
 src/providers/ReduxProvider.tsx (Redux provider wrapper)
 
 All three collapse into one file.
+
+## Commit - TanStack React Query - Axios
+
+install : npx expo install axios
+
+| `fetchBaseQuery` in RTK — token injected in `prepareHeaders` | Axios interceptor — auto-attaches token to every request |
+| 401 handling per-query | One global 401 handler — clears auth, app redirects automatically |
+| Tied to Redux | Standalone — any query lib or plain `await api.get()` can use it |
+
+---
+
+Key concept — interceptors:
+
+Every request →  [request interceptor]  →  server
+                      reads token from SecureStore
+                      attaches Authorization header
+
+Every response ← [response interceptor] ← server
+                      if 401 → clearAuth()
+                      if ok  → pass through
+
+OLD                          NEW
+─────────────────────────    ─────────────────────────
+Redux store          →       Zustand (client state)
+RTK Query            →       TanStack Query (server state)
+fetchBaseQuery       →       Axios (HTTP client)
+amazon-cognito-js    →       stays (no replacement needed)
+expo-secure-store    →       stays, wrapped in storage.ts
+
+The reason we split it: Redux was doing two jobs at once — managing local app state AND fetching server data. Now each tool does one job only. Cleaner, easier to debug.
